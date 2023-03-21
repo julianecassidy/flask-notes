@@ -1,7 +1,7 @@
 """Models for Notes app."""
- 
+
 from flask_sqlalchemy import SQLAlchemy
- 
+
 db = SQLAlchemy()
 
 def connect_db(app):
