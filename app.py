@@ -3,7 +3,9 @@ from flask import Flask, redirect, render_template, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, User
-from forms import RegisterUserForm, LoginForm
+from forms import RegisterUserForm, LoginForm, CSRFProtectForm
+
+AUTH_KEY_NAME = 'user_username'
 
 app = Flask(__name__)
 
@@ -35,11 +37,12 @@ def display_register_form():
 
     return render_template('register_user.html', form=form)
 
+# @app.route('/register', methods=['POST', 'GET'])
 
 @app.post('/register')
 def handle_registration_form_submit():
     """ Validate registration form submission; add new user and redirect or re-
-    render form"""
+    render form if failure """
 
     form = RegisterUserForm()
 
@@ -48,7 +51,7 @@ def handle_registration_form_submit():
         password = form.password.data
         email = form.email.data
         first_name = form.first_name.data
-        last_name = form.last_name.data or None
+        last_name = form.last_name.data
 
         user = User.register(username, password, email, first_name, last_name)
 
@@ -95,17 +98,33 @@ def process_login_form():
 
 
 @app.get('/users/<username>')
-def display_success_login(username):
+def display_user_profile(username):
     """return a user's page if user is successfully logged in"""
 
-    print("session username", session['user_username'])
+    # print("session username", session['user_username'])
 
-    if not session['user_username'] == username:
+    form = CSRFProtectForm()
+
+    # if 'user_username' not in session or session['user_username'] != username:
+
+    if 'user_username' not in session or not session['user_username'] == username:
         flash("You must be logged in to view!")
         return redirect("/register")
-    
+
     user = User.query.get_or_404(username)
-    
-    return render_template("user_profile.html", user=user)
+
+    return render_template("user_profile.html", user=user, form=form)
+
+@app.post('/logout')
+def logout_user():
+    """logs out a user """
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        session.pop("user_username", None)
+        # print("session_removed", session)
+
+    return redirect('/')
 
 

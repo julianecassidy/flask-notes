@@ -12,6 +12,13 @@
         <li><b>email:</b> {{ user.email }}</li>
 
     </ul>
+    <form id="logout-user" method="POST" action="/logout">
+        {{ form.hidden_tag() }}
+        <!--add type=hidden form fields -->
+
+        <button type="submit">Logout</button>
+      </form>
+
 </div>
 
 
