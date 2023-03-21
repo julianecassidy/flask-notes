@@ -20,3 +20,17 @@ SECRET_KEY = "very secret key"
 # app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
+
+@app.get('/')
+def redirect_register():
+    """ Redirects to register page """
+    return redirect('/register')
+
+@app.get('/register')
+def display_register_form():
+    """ Show user register form """
+
+    form = RegisterUserForm()
+
+    return render_template('register_user.html', form=form)
+
