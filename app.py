@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect, render_template
+from flask import Flask, redirect, render_template, session
 from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, User
@@ -50,21 +50,16 @@ def handle_registration_form_submit():
         first_name = form.first_name.data
         last_name = form.last_name.data or None
 
-        user = User(
-            username=username, 
-            password=password, 
-            email=email, 
-            first_name=first_name, 
-            last_name=last_name)
-        
+        user = User.register(username, password, email, first_name, last_name)
+
         db.session.add(user)
         db.session.commit()
 
         return redirect('/secret')
-    
+
     else:
         return render_template('register_user.html', form=form)
-    
+
 
 @app.get('/login')
 def display_login_form():
@@ -73,3 +68,32 @@ def display_login_form():
     form = LoginForm()
 
     return render_template("login_user.html", form=form)
+
+@app.route('/login', methods=["GET", "POST"])
+def process_login_form():
+    """Handle user logins"""
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        user = User.authenticate(username, password)
+
+        if user:
+            session['user_username'] = user.username
+            return redirect('/secret')
+
+        else:
+            form.username.errors = ["Bad name/password"]
+
+    else:
+        return render_template("login_user.html", form=form)
+
+
+@app.get('/secret')
+def display_success_login():
+    """return a successful login message"""
+
+    return "You made it!"
