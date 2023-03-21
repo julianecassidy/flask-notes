@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect, render_template, session
+from flask import Flask, redirect, render_template, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, User
@@ -55,7 +55,9 @@ def handle_registration_form_submit():
         db.session.add(user)
         db.session.commit()
 
-        return redirect('/secret')
+        session['user_username'] = user.username
+
+        return redirect(f"/users/{user.username}")
 
     else:
         return render_template('register_user.html', form=form)
@@ -83,7 +85,7 @@ def process_login_form():
 
         if user:
             session['user_username'] = user.username
-            return redirect('/secret')
+            return redirect(f"/users/{user.username}")
 
         else:
             form.username.errors = ["Bad name/password"]
@@ -92,8 +94,18 @@ def process_login_form():
         return render_template("login_user.html", form=form)
 
 
-@app.get('/secret')
-def display_success_login():
-    """return a successful login message"""
+@app.get('/users/<username>')
+def display_success_login(username):
+    """return a user's page if user is successfully logged in"""
 
-    return "You made it!"
+    print("session username", session['user_username'])
+
+    if not session['user_username'] == username:
+        flash("You must be logged in to view!")
+        return redirect("/register")
+    
+    user = User.query.get_or_404(username)
+    
+    return render_template("user_profile.html", user=user)
+
+
