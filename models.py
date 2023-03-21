@@ -15,6 +15,8 @@ def connect_db(app):
 class User(db.Model):
     """User."""
 
+    __tablename__ = "users"
+
     username = db.Column(
         db.String(20),
         primary_key=True
